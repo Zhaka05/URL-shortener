@@ -22,14 +22,34 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
+    async with new_session() as session:
+        yield session
 
 @app.post("/short_url")
-async def generate_short_url(
-        long_url: str = Body(embed=True)
+async def generate_slug(
+    long_url: Annotated[str, Body(embed=True)],
+    session: Annotated[AsyncSession, Depends(get_session)],
 ):
-    return ...
+    try:
+        new_slug = await generate_short_url(long_url, session)
+    except SlugAlreadyExistsError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Не удалось сгенерировать slug",
+        )
+    return {"data": new_slug}
+
 
 @app.get("/{slug}")
-async def redirect_to_url(slug: str):
-    return ...
+async def redirect_to_url(
+    slug: str,
+    session: Annotated[AsyncSession, Depends(get_session)],
+):
+    try:
+        long_url = await get_url_by_slug(slug, session)
+    except NoLongUrlFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ссылка не существует")
+    return RedirectResponse(url=long_url, status_code=status.HTTP_302_FOUND)
+
 
