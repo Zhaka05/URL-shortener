@@ -1,9 +1,18 @@
 from contextlib import asynccontextmanager
+from typing import Annotated, AsyncGenerator
 
-from fastapi import FastAPI, Body
+from fastapi import Body, FastAPI, status, HTTPException, Depends
+from fastapi.responses import RedirectResponse
 
-from database.db import engine
-from database.models import Base
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.database.db import engine, new_session
+from src.database.models import Base
+
+
+from src.exceptions import NoLongUrlFoundError, SlugAlreadyExistsError
+from src.service import generate_short_url, get_url_by_slug
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
