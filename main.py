@@ -1,20 +1,23 @@
-import string
-from secrets import choice
+from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 
-app = FastAPI()
+from database.db import engine
+from database.models import Base
 
-ALPHABET: str = string.ascii_letters + string.digits
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
 
-def generate_random_slug():
-    slug = ""
-    for _ in range(6):
-        slug += choice(ALPHABET)
-    return slug
+app = FastAPI(lifespan=lifespan)
+
 
 @app.post("/short_url")
-async def generate_short_url():
+async def generate_short_url(
+        long_url: str = Body(embed=True)
+):
     return ...
 
 @app.get("/{slug}")
