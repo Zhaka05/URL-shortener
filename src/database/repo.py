@@ -1,4 +1,4 @@
-from src.database.models import ShortURL
+from src.database.models import ShortUrl
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -12,7 +12,7 @@ async def add_slug_to_database(
         long_url: str,
         session: AsyncSession,
 ):
-    new_slug = ShortURL(
+    new_slug = ShortUrl(
         slug=slug,
         long_url=long_url,
     )
@@ -24,7 +24,7 @@ async def add_slug_to_database(
 
 
 async def get_long_url_by_slug_from_database(slug: str, session: AsyncSession) -> str | None:
-    query = select(ShortURL).filter_by(slug=slug)
+    query = select(ShortUrl).filter_by(slug=slug)
     result = await session.execute(query)
-    res: ShortURL | None = result.scalar_one_or_none()
+    res: ShortUrl | None = result.scalar_one_or_none()
     return res.long_url if res.long_url else None

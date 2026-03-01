@@ -3,6 +3,9 @@ from typing import Annotated, AsyncGenerator
 
 from fastapi import Body, FastAPI, status, HTTPException, Depends
 from fastapi.responses import RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import AsyncSession
+
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,6 +25,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5500"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with new_session() as session:
         yield session
@@ -36,7 +47,7 @@ async def generate_slug(
     except SlugAlreadyExistsError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Не удалось сгенерировать slug",
+            detail="Cannot generate Slug",
         )
     return {"data": new_slug}
 
@@ -49,7 +60,7 @@ async def redirect_to_url(
     try:
         long_url = await get_url_by_slug(slug, session)
     except NoLongUrlFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ссылка не существует")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="URL doesn't exist")
     return RedirectResponse(url=long_url, status_code=status.HTTP_302_FOUND)
 
 
