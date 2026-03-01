@@ -103,17 +103,17 @@
   </head>
   <body>
     <main>
-      <h1>Сократи ссылку</h1>
-      <p>Введите длинный URL, backend FastAPI вернёт slug, а мы соберём короткую ссылку.</p>
+      <h1>Short url</h1>
+      <p>Enter Long URL, backend FastAPI will return slug, and we create short url.</p>
       <form id="short-form">
-        <label for="long-url">Длинный URL</label>
+        <label for="long-url">Long URL</label>
         <input id="long-url" type="url" placeholder="https://example.com" required />
-        <button type="submit">Сократить</button>
+        <button type="submit">Short It</button>
       </form>
 
       <div id="error"></div>
       <div id="result" hidden>
-        <p>Готово! Ваша короткая ссылка:</p>
+        <p>Ready! Here is your short url:</p>
         <a class="short-link" id="short-link" target="_blank" rel="noopener noreferrer"></a>
       </div>
     </main>
@@ -134,7 +134,7 @@
 
         const longUrl = input.value.trim();
         if (!longUrl) {
-          errorBox.textContent = "Введите ссылку.";
+          errorBox.textContent = "Enter url.";
           return;
         }
 
@@ -146,7 +146,7 @@
           });
 
           if (!response.ok) {
-            let detail = "Не удалось сократить ссылку.";
+            let detail = "Cannot shorten url.";
             try {
               const errorData = await response.json();
               detail = errorData?.detail ?? detail;
@@ -159,7 +159,7 @@
           const data = await response.json();
           const slug = data?.data;
           if (!slug) {
-            throw new Error("Backend не вернул slug.");
+            throw new Error("Backend did not return slug.");
           }
 
           const shortUrl = `${backendBase}/${slug}`;
@@ -167,7 +167,7 @@
           shortLink.href = shortUrl;
           resultBox.hidden = false;
         } catch (err) {
-          errorBox.textContent = err.message ?? "Что-то пошло не так";
+          errorBox.textContent = err.message ?? "Something went wrong";
         }
       });
     </script>
